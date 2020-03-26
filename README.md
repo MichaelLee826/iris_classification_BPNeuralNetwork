@@ -21,6 +21,8 @@
 ## 2.算法实现
 [纯Python实现鸢尾属植物数据集神经网络模型](https://yq.aliyun.com/articles/614411?utm_content=m_1000007130#) 这篇文章中讲解得更为详细。本人对代码做了略微的修改，并增加了评估模型准确率的`predict()`函数。
 
+**以下代码对应的是iris_data_classification_bpnn_V2.py文件**
+
 ```python
 import pandas as pd
 import numpy as np
