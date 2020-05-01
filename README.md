@@ -3,6 +3,16 @@
 > 本文用Python实现了BP神经网络分类算法，根据鸢尾花的4个特征，实现3种鸢尾花的分类。
 > 算法参考文章：[纯Python实现鸢尾属植物数据集神经网络模型](https://yq.aliyun.com/articles/614411?utm_content=m_1000007130#)
 
+iris_data_classification_bpnn_V1.py 需使用 **bpnn_V1数据集** 文件夹中的数据
+
+iris_data_classification_bpnn_V2.py 需使用 **bpnn_V2数据集** 文件夹中的数据
+
+iris_data_classification_knn.py     需使用 **原始数据集**    文件夹中的数据
+
+iris_data_cluster_sklearn.py        需使用 **sklearn数据集** 文件夹中的数据
+
+不同数据集里数据都是一样的，只是为了程序使用方便而做了一些格式的变动。
+
 ## 1.数据准备
 鸢尾花数据集包含4种特征，萼片长度（Sepal Length）、萼片宽度（Sepal Width）、花瓣长度（Petal Length）和花瓣宽度（Petal Width），以及3种鸢尾花Versicolor、Virginica和Setosa。
 
