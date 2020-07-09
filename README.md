@@ -208,15 +208,20 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
 if __name__ == "__main__":
     # 读取数据
     data_set = pd.read_csv('D:\\iris_training.csv', header=None)
-    # 第1种取数据方法：
-	X = data_set.ix[:, 0:3].values.T        # 前四列是特征，T表示转置
-    Y = data_set.ix[:, 4:6].values.T        # 后三列是标签
+    
+	第1种取数据方法：
+    X = data_set.iloc[:, 0:4].values.T          # 前四列是特征，T表示转置
+    Y = data_set.iloc[:, 4:].values.T          # 后三列是标签
 
-	# 第2种取数据方法：
+    # 第2种取数据方法：
+    # X = data_set.ix[:, 0:3].values.T
+    # Y = data_set.ix[:, 4:6].values.T
+
+    # 第3种取数据方法：
     # X = data_set.loc[:, 0:3].values.T
     # Y = data_set.loc[:, 4:6].values.T
 
-	# 第3种取数据方法：
+    # 第4种取数据方法：
     # X = data_set[data_set.columns[0:4]].values.T
     # Y = data_set[data_set.columns[4:7]].values.T
     Y = Y.astype('uint8')
