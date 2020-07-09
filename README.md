@@ -135,35 +135,7 @@ def update_parameters(parameters, grads, learning_rate=0.4):
     return parameters
 
 
-# 建立神经网络
-def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=False):
-    np.random.seed(3)
-
-    n_x = n_input           # 输入层节点数
-    n_y = n_output          # 输出层节点数
-
-    # 1.初始化参数
-    parameters = initialize_parameters(n_x, n_h, n_y)
-
-    # 梯度下降循环
-    for i in range(0, num_iterations):
-        # 2.前向传播
-        a2, cache = forward_propagation(X, parameters)
-        # 3.计算代价函数
-        cost = compute_cost(a2, Y, parameters)
-        # 4.反向传播
-        grads = backward_propagation(parameters, cache, X, Y)
-        # 5.更新参数
-        parameters = update_parameters(parameters, grads)
-
-        # 每1000次迭代，输出一次代价函数
-        if print_cost and i % 1000 == 0:
-            print('迭代第%i次，代价函数为：%f' % (i, cost))
-
-    return parameters
-
-
-# 对模型进行测试
+# 6.模型评估
 def predict(parameters, x_test, y_test):
     w1 = parameters['w1']
     b1 = parameters['b1']
@@ -205,11 +177,48 @@ def predict(parameters, x_test, y_test):
     print('准确率：%.2f%%' % acc)
 
 
+# 建立神经网络
+def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=False):
+    np.random.seed(3)
+
+    n_x = n_input           # 输入层节点数
+    n_y = n_output          # 输出层节点数
+
+    # 1.初始化参数
+    parameters = initialize_parameters(n_x, n_h, n_y)
+
+    # 梯度下降循环
+    for i in range(0, num_iterations):
+        # 2.前向传播
+        a2, cache = forward_propagation(X, parameters)
+        # 3.计算代价函数
+        cost = compute_cost(a2, Y, parameters)
+        # 4.反向传播
+        grads = backward_propagation(parameters, cache, X, Y)
+        # 5.更新参数
+        parameters = update_parameters(parameters, grads)
+
+        # 每1000次迭代，输出一次代价函数
+        if print_cost and i % 1000 == 0:
+            print('迭代第%i次，代价函数为：%f' % (i, cost))
+
+    return parameters
+
+
 if __name__ == "__main__":
     # 读取数据
     data_set = pd.read_csv('D:\\iris_training.csv', header=None)
-    X = data_set.ix[:, 0:3].values.T        # 前四列是特征，T表示转置
+    # 第1种取数据方法：
+	X = data_set.ix[:, 0:3].values.T        # 前四列是特征，T表示转置
     Y = data_set.ix[:, 4:6].values.T        # 后三列是标签
+
+	# 第2种取数据方法：
+    # X = data_set.loc[:, 0:3].values.T
+    # Y = data_set.loc[:, 4:6].values.T
+
+	# 第3种取数据方法：
+    # X = data_set[data_set.columns[0:4]].values.T
+    # Y = data_set[data_set.columns[4:7]].values.T
     Y = Y.astype('uint8')
 
     # 开始训练
@@ -226,7 +235,6 @@ if __name__ == "__main__":
     y_test = y_test.astype('uint8')
 
     predict(parameters, x_test, y_test)
-
 
 ```
 最终结果：
