@@ -171,13 +171,16 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
 
 if __name__ == "__main__":
     # 读取数据
-    data_set = pd.read_csv('D:\\Michael\\Documents\\01 项目\\01 大数据平台\\14 数据分析\\02 智能装备\\04 测试数据\\鸢尾花\\BP神经网络\\4特征3输出3分类\\iris_training.csv', header=None)
-    # X = data_set.ix[:, 0:3].values.T        # 前四列是特征，T表示转置
-    # Y = data_set.ix[:, 4:6].values.T        # 后三列是标签
+    data_set = pd.read_csv('D:\\iris_training.csv', header=None)
+    # 第1种取数据方法：
+	X = data_set.ix[:, 0:3].values.T        # 前四列是特征，T表示转置
+    Y = data_set.ix[:, 4:6].values.T        # 后三列是标签
 
-    X = data_set.loc[:, 0:3].values.T
-    Y = data_set.loc[:, 4:6].values.T
+	# 第2种取数据方法：
+    # X = data_set.loc[:, 0:3].values.T
+    # Y = data_set.loc[:, 4:6].values.T
 
+	# 第3种取数据方法：
     # X = data_set[data_set.columns[0:4]].values.T
     # Y = data_set[data_set.columns[4:7]].values.T
     Y = Y.astype('uint8')
@@ -190,7 +193,7 @@ if __name__ == "__main__":
     print("用时：" + str((end_time - start_time).seconds) + 's' + str(round((end_time - start_time).microseconds / 1000)) + 'ms')
 
     # 对模型进行测试
-    data_test = pd.read_csv('D:\\Michael\\Documents\\01 项目\\01 大数据平台\\14 数据分析\\02 智能装备\\04 测试数据\\鸢尾花\\BP神经网络\\4特征3输出3分类\\iris_test.csv', header=None)
+    data_test = pd.read_csv('D:\\iris_test.csv', header=None)
     x_test = data_test.ix[:, 0:3].values.T
     y_test = data_test.ix[:, 4:6].values.T
     y_test = y_test.astype('uint8')
