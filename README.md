@@ -13,6 +13,13 @@ iris_data_cluster_sklearn.py        需使用 **sklearn数据集** 文件夹中�
 
 不同数据集里数据都是一样的，只是为了程序使用方便而做了一些格式的变动。
 
+---
+
+**2020.07.21更新：** 增加了分类结果可视化result_visualization。
+**2020.07.09更新：** 完善代码中取数据部分的操作。
+
+---
+
 ## 1.数据准备
 鸢尾花数据集包含4种特征，萼片长度（Sepal Length）、萼片宽度（Sepal Width）、花瓣长度（Petal Length）和花瓣宽度（Petal Width），以及3种鸢尾花Versicolor、Virginica和Setosa。
 
@@ -37,6 +44,8 @@ iris_data_cluster_sklearn.py        需使用 **sklearn数据集** 文件夹中�
 import pandas as pd
 import numpy as np
 import datetime
+import matplotlib.pyplot as plt
+from pandas.plotting import radviz
 '''
     构建一个具有1个隐藏层的神经网络，隐层的大小为10
     输入层为4个特征，输出层为3个分类
@@ -176,6 +185,8 @@ def predict(parameters, x_test, y_test):
     acc = count / int(y_test.shape[1]) * 100
     print('准确率：%.2f%%' % acc)
 
+    return output
+
 
 # 建立神经网络
 def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=False):
@@ -205,13 +216,59 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
     return parameters
 
 
+# 结果可视化
+# 特征有4个维度，类别有1个维度，一共5个维度，故采用了RadViz图
+def result_visualization(x_test, y_test, result):
+    cols = y_test.shape[1]
+    y = []
+    pre = []
+
+    # 反转换类别的独热编码
+    for i in range(cols):
+        if y_test[0][i] == 0 and y_test[1][i] == 0 and y_test[2][i] == 1:
+            y.append('setosa')
+        elif y_test[0][i] == 0 and y_test[1][i] == 1 and y_test[2][i] == 0:
+            y.append('versicolor')
+        elif y_test[0][i] == 1 and y_test[1][i] == 0 and y_test[2][i] == 0:
+            y.append('virginica')
+
+    for j in range(cols):
+        if result[0][j] == 0 and result[1][j] == 0 and result[2][j] == 1:
+            pre.append('setosa')
+        elif result[0][j] == 0 and result[1][j] == 1 and result[2][j] == 0:
+            pre.append('versicolor')
+        elif result[0][j] == 1 and result[1][j] == 0 and result[2][j] == 0:
+            pre.append('virginica')
+        else:
+            pre.append('unknown')
+
+    # 将特征和类别矩阵拼接起来
+    real = np.column_stack((x_test.T, y))
+    prediction = np.column_stack((x_test.T, pre))
+
+    # 转换成DataFrame类型，并添加columns
+    df_real = pd.DataFrame(real, index=None, columns=['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width', 'Species'])
+    df_prediction = pd.DataFrame(prediction, index=None, columns=['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width', 'Species'])
+
+    # 将特征列转换为float类型，否则radviz会报错
+    df_real[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']] = df_real[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']].astype(float)
+    df_prediction[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']] = df_prediction[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']].astype(float)
+
+    # 绘图
+    plt.figure('真实分类')
+    radviz(df_real, 'Species', color=['blue', 'green', 'red', 'yellow'])
+    plt.figure('预测分类')
+    radviz(df_prediction, 'Species', color=['blue', 'green', 'red', 'yellow'])
+    plt.show()
+
+
 if __name__ == "__main__":
     # 读取数据
     data_set = pd.read_csv('D:\\iris_training.csv', header=None)
-    
+
     # 第1种取数据方法：
     X = data_set.iloc[:, 0:4].values.T          # 前四列是特征，T表示转置
-    Y = data_set.iloc[:, 4:].values.T          # 后三列是标签
+    Y = data_set.iloc[:, 4:].values.T           # 后三列是标签
 
     # 第2种取数据方法：
     # X = data_set.ix[:, 0:3].values.T
@@ -235,15 +292,22 @@ if __name__ == "__main__":
 
     # 对模型进行测试
     data_test = pd.read_csv('D:\\iris_test.csv', header=None)
-    x_test = data_test.ix[:, 0:3].values.T
-    y_test = data_test.ix[:, 4:6].values.T
+    x_test = data_test.iloc[:, 0:4].values.T
+    y_test = data_test.iloc[:, 4:].values.T
     y_test = y_test.astype('uint8')
 
-    predict(parameters, x_test, y_test)
+    result = predict(parameters, x_test, y_test)
+
+    # 分类结果可视化
+    result_visualization(x_test, y_test, result)
 
 ```
 最终结果：
 ![结果](https://img-blog.csdnimg.cn/20191227152325990.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21pY2hhZWxfZjIwMDg=,size_16,color_FFFFFF,t_70)
+
+分类的可视化效果，左侧为测试集的真实分类，右侧为模型的预测分类结果，采用的是**RadViz图**：
+![分类可视化](https://img-blog.csdnimg.cn/20200721132114814.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21pY2hhZWxfZjIwMDg=,size_16,color_FFFFFF,t_70#pic_center)
+
 每次运行时准确率可能都不一样，可以通过调整**学习率、隐节点数、迭代次数**等参数来改善模型的效果。
 
 ## 3.总结
