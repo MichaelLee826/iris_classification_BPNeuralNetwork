@@ -209,7 +209,7 @@ if __name__ == "__main__":
     # 读取数据
     data_set = pd.read_csv('D:\\iris_training.csv', header=None)
     
-	第1种取数据方法：
+    # 第1种取数据方法：
     X = data_set.iloc[:, 0:4].values.T          # 前四列是特征，T表示转置
     Y = data_set.iloc[:, 4:].values.T          # 后三列是标签
 
