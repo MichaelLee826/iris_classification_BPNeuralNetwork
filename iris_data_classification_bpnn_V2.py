@@ -46,7 +46,7 @@ def forward_propagation(X, parameters):
 
 
 # 3.计算代价函数
-def compute_cost(a2, Y, parameters):
+def compute_cost(a2, Y):
     m = Y.shape[1]      # Y的列数即为总的样本数
 
     # 采用交叉熵（cross-entropy）作为代价函数
@@ -101,6 +101,34 @@ def update_parameters(parameters, grads, learning_rate=0.4):
     return parameters
 
 
+# 建立神经网络
+def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=False):
+    np.random.seed(3)
+
+    n_x = n_input           # 输入层节点数
+    n_y = n_output          # 输出层节点数
+
+    # 1.初始化参数
+    parameters = initialize_parameters(n_x, n_h, n_y)
+
+    # 梯度下降循环
+    for i in range(0, num_iterations):
+        # 2.前向传播
+        a2, cache = forward_propagation(X, parameters)
+        # 3.计算代价函数
+        cost = compute_cost(a2, Y)
+        # 4.反向传播
+        grads = backward_propagation(parameters, cache, X, Y)
+        # 5.更新参数
+        parameters = update_parameters(parameters, grads)
+
+        # 每1000次迭代，输出一次代价函数
+        if print_cost and i % 1000 == 0:
+            print('迭代第%i次，代价函数为：%f' % (i, cost))
+
+    return parameters
+
+
 # 6.模型评估
 def predict(parameters, x_test, y_test):
     w1 = parameters['w1']
@@ -127,17 +155,15 @@ def predict(parameters, x_test, y_test):
             else:
                 output[i][j] = 0
 
-    print('预测结果：')
-    print(output)
-    print('真实结果：')
-    print(y_test)
+    print('预测结果：', output)
+    print('真实结果：', y_test)
 
     count = 0
     for k in range(0, n_cols):
         if output[0][k] == y_test[0][k] and output[1][k] == y_test[1][k] and output[2][k] == y_test[2][k]:
             count = count + 1
         else:
-            print(k)
+            print('错误分类样本的序号：', k + 1)
 
     acc = count / int(y_test.shape[1]) * 100
     print('准确率：%.2f%%' % acc)
@@ -145,35 +171,7 @@ def predict(parameters, x_test, y_test):
     return output
 
 
-# 建立神经网络
-def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=False):
-    np.random.seed(3)
-
-    n_x = n_input           # 输入层节点数
-    n_y = n_output          # 输出层节点数
-
-    # 1.初始化参数
-    parameters = initialize_parameters(n_x, n_h, n_y)
-
-    # 梯度下降循环
-    for i in range(0, num_iterations):
-        # 2.前向传播
-        a2, cache = forward_propagation(X, parameters)
-        # 3.计算代价函数
-        cost = compute_cost(a2, Y, parameters)
-        # 4.反向传播
-        grads = backward_propagation(parameters, cache, X, Y)
-        # 5.更新参数
-        parameters = update_parameters(parameters, grads)
-
-        # 每1000次迭代，输出一次代价函数
-        if print_cost and i % 1000 == 0:
-            print('迭代第%i次，代价函数为：%f' % (i, cost))
-
-    return parameters
-
-
-# 结果可视化
+# 7.结果可视化
 # 特征有4个维度，类别有1个维度，一共5个维度，故采用了RadViz图
 def result_visualization(x_test, y_test, result):
     cols = y_test.shape[1]
@@ -221,7 +219,7 @@ def result_visualization(x_test, y_test, result):
 
 if __name__ == "__main__":
     # 读取数据
-    data_set = pd.read_csv('D:\\iris_training.csv', header=None)
+    data_set = pd.read_csv('E:\\GitHub\\iris_classification_BPNeuralNetwork\\bpnn_V2数据集\\iris_training.csv', header=None)
 
     # 第1种取数据方法：
     X = data_set.iloc[:, 0:4].values.T          # 前四列是特征，T表示转置
@@ -248,7 +246,7 @@ if __name__ == "__main__":
     print("用时：" + str((end_time - start_time).seconds) + 's' + str(round((end_time - start_time).microseconds / 1000)) + 'ms')
 
     # 对模型进行测试
-    data_test = pd.read_csv('D:\\iris_test.csv', header=None)
+    data_test = pd.read_csv('E:\\GitHub\\iris_classification_BPNeuralNetwork\\bpnn_V2数据集\\iris_test.csv', header=None)
     x_test = data_test.iloc[:, 0:4].values.T
     y_test = data_test.iloc[:, 4:].values.T
     y_test = y_test.astype('uint8')
