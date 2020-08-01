@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import datetime
-
+from sklearn.preprocessing import OneHotEncoder
+from pandas.plotting import radviz
 '''
-    构建一个具有1个隐藏层的神经网络，隐层的大小为6
+    构建一个具有1个隐藏层的神经网络，隐层的大小为10
     输入层为2（或4）个特征；输出层1个节点，结果为0或1
     当特征为2个时，表头为：'SepalLength', 'SepalWidth', 'species'，迭代1000次，正确率为100%
     当特征为4个时，表头为：'SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth', 'species'，迭代1000次，正确率为63.64%
@@ -59,7 +60,7 @@ def forward_propagation(X, parameters):
 
 
 # 3.计算代价函数
-def compute_cost(a2, Y, parameters):
+def compute_cost(a2, Y):
     m = Y.shape[1]      # Y的列数即为总的样本数
 
     # 采用交叉熵（cross-entropy）作为代价函数
@@ -73,7 +74,6 @@ def compute_cost(a2, Y, parameters):
 def backward_propagation(parameters, cache, X, Y):
     m = Y.shape[1]
 
-    w1 = parameters['w1']
     w2 = parameters['w2']
 
     a1 = cache['a1']
@@ -93,7 +93,7 @@ def backward_propagation(parameters, cache, X, Y):
 
 
 # 5.更新参数
-def update_parameters(parameters, grads, learning_rate=1.2):
+def update_parameters(parameters, grads, learning_rate=0.4):
     w1 = parameters['w1']
     b1 = parameters['b1']
     w2 = parameters['w2']
@@ -130,7 +130,7 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
         # 2.前向传播
         a2, cache = forward_propagation(X, parameters)
         # 3.计算代价函数
-        cost = compute_cost(a2, Y, parameters)
+        cost = compute_cost(a2, Y)
         # 4.反向传播
         grads = backward_propagation(parameters, cache, X, Y)
         # 5.更新参数
@@ -143,7 +143,7 @@ def nn_model(X, Y, n_h, n_input, n_output, num_iterations=10000, print_cost=Fals
     return parameters
 
 
-# 对模型进行测试
+# 6.模型评估
 def predict(parameters, x_test, y_test):
     w1 = parameters['w1']
     b1 = parameters['b1']
@@ -155,56 +155,99 @@ def predict(parameters, x_test, y_test):
     z2 = np.dot(w2, a1) + b2
     a2 = 1 / (1 + np.exp(-z2))
 
-    # 样本数为x的列数
-    n_samples = x_test.shape[1]
+    # 结果的维度
+    n_rows = a2.shape[0]
+    n_cols = a2.shape[1]
 
     # 预测值结果存储
-    output = np.empty(shape=(1, n_samples), dtype=int)
+    output = np.empty(shape=(n_rows, n_cols), dtype=int)
 
-    for i in range(n_samples):
-        err = np.abs(1.0 - a2[0][i])
-        if err < 0.01:
-            output[0][i] = 1
-        elif err > 0.99:
-            output[0][i] = 0
-        else:
-            output[0][i] = -1
+    for i in range(n_rows):
+        for j in range(n_cols):
+            if a2[i][j] > 0.5:
+                output[i][j] = 1
+            else:
+                output[i][j] = 0
 
-    print('预测结果：' + str(output))
-    print('真实结果：' + str(y_test))
+    # 将独热编码反转为标签
+    output = encoder.inverse_transform(output.T)
+    output = output.reshape(1, output.shape[0])
+    output = output.flatten()
+
+    print('预测结果：', output)
+    print('真实结果：', y_test)
 
     count = 0
-    for j in range(0, y_test.shape[1]):
-        if output[0][j] == y_test[0][j]:
+    for k in range(0, n_cols):
+        if output[k] == y_test[k]:
             count = count + 1
+        else:
+            print('错误分类样本的序号：', k + 1)
 
-    acc = count / int(y_test.shape[1]) * 100
+    acc = count / int(a2.shape[1]) * 100
     print('准确率：%.2f%%' % acc)
+
+    return output
+
+
+# 7.结果可视化
+# 特征有4个维度，类别有1个维度，一共5个维度，故采用了RadViz图
+def result_visualization(x_test, y_test, result):
+    cols = y_test.shape[0]
+    y = []
+    pre = []
+    labels = ['setosa', 'versicolor', 'virginica']
+
+    # 将0、1、2转换成setosa、versicolor、virginica
+    for i in range(cols):
+        y.append(labels[y_test[i]])
+        pre.append(labels[result[i]])
+
+    # 将特征和类别矩阵拼接起来
+    real = np.column_stack((x_test.T, y))
+    prediction = np.column_stack((x_test.T, pre))
+
+    # 转换成DataFrame类型，并添加columns
+    df_real = pd.DataFrame(real, index=None, columns=['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width', 'Species'])
+    df_prediction = pd.DataFrame(prediction, index=None, columns=['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width', 'Species'])
+
+    # 将特征列转换为float类型，否则radviz会报错
+    df_real[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']] = df_real[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']].astype(float)
+    df_prediction[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']] = df_prediction[['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width']].astype(float)
+
+    # 绘图
+    plt.figure('真实分类')
+    radviz(df_real, 'Species', color=['blue', 'green', 'red', 'yellow'])
+    plt.figure('预测分类')
+    radviz(df_prediction, 'Species', color=['blue', 'green', 'red', 'yellow'])
+    plt.show()
 
 
 if __name__ == "__main__":
     # 读取数据
-    # iris = pd.read_csv('D:\\iris_training.csv')
-    iris = pd.read_csv('D:\\iris_training_4.csv')
-    # X = iris[['PetalLength', 'PetalWidth']].values.T  # T是转置
+    iris = pd.read_csv('E:\\GitHub\\iris_classification_BPNeuralNetwork\\bpnn_V1数据集\\iris_training.csv')
     X = iris[['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth']].values.T  # T是转置
-    Y = iris[['species']].values.T
+    Y = iris['species'].values
+
+    # 将标签转换为独热编码
+    encoder = OneHotEncoder()
+    Y = encoder.fit_transform(Y.reshape(Y.shape[0], 1))
+    Y = Y.toarray().T
     Y = Y.astype('uint8')
 
     # 开始训练
     start_time = datetime.datetime.now()
-    # 输入4个节点，隐层6个节点，输出1个节点，迭代10000次
-    parameters = nn_model(X, Y, n_h=6, n_input=4, n_output=1, num_iterations=2000, print_cost=True)
+    # 输入4个节点，隐层10个节点，输出3个节点，迭代10000次
+    parameters = nn_model(X, Y, n_h=10, n_input=4, n_output=3, num_iterations=10000, print_cost=True)
     end_time = datetime.datetime.now()
-    print("用时：" + str((end_time - start_time).seconds) + 's' + str(round((end_time - start_time).microseconds / 1000)) + 'ms')
+    print("用时：" + str(round((end_time - start_time).microseconds / 1000)) + 'ms')
 
     # 对模型进行测试
-    # data_test = pd.read_csv('D:\\iris_test.csv')
-    data_test = pd.read_csv('D:\\iris_test_4.csv')
-    # x_test = data_test[['PetalLength', 'PetalWidth']].values.T
+    data_test = pd.read_csv('E:\\GitHub\\iris_classification_BPNeuralNetwork\\bpnn_V1数据集\\iris_test.csv')
     x_test = data_test[['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth']].values.T
-    y_test = data_test[['species']].values.T
-    y_test = y_test.astype('uint8')
+    y_test = data_test['species'].values
 
-    predict(parameters, x_test, y_test)
+    result = predict(parameters, x_test, y_test)
 
+    # 分类结果可视化
+    result_visualization(x_test, y_test, result)
